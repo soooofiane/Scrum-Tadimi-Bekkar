@@ -1,0 +1,222 @@
+import { createContext, useContext, useState, useEffect } from 'react';
+
+const GameContext = createContext();
+
+export const useGame = () => {
+  const context = useContext(GameContext);
+  if (!context) {
+    throw new Error('useGame must be used within a GameProvider');
+  }
+  return context;
+};
+
+export const GameProvider = ({ children }) => {
+  const [players, setPlayers] = useState([]);
+  const [gameMode, setGameMode] = useState('strict'); // strict, average, median, absolute_majority, relative_majority
+  const [backlog, setBacklog] = useState([]);
+  const [currentFeatureIndex, setCurrentFeatureIndex] = useState(0);
+  const [currentRound, setCurrentRound] = useState(1);
+  const [votes, setVotes] = useState({});
+  const [completedFeatures, setCompletedFeatures] = useState([]);
+  const [gameStarted, setGameStarted] = useState(false);
+
+  // Load saved game from localStorage on mount
+  useEffect(() => {
+    const savedGame = localStorage.getItem('planningPokerSave');
+    if (savedGame) {
+      // const data = JSON.parse(savedGame);
+      // Restore game state if needed
+    }
+  }, []);
+
+  const saveGameToFile = () => {
+    const gameState = {
+      players,
+      gameMode,
+      backlog,
+      currentFeatureIndex,
+      completedFeatures,
+      timestamp: new Date().toISOString(),
+    };
+    
+    const dataStr = JSON.stringify(gameState, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `planning-poker-save-${Date.now()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const loadGameFromFile = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const gameState = JSON.parse(e.target.result);
+          setPlayers(gameState.players || []);
+          setGameMode(gameState.gameMode || 'strict');
+          setBacklog(gameState.backlog || []);
+          setCurrentFeatureIndex(gameState.currentFeatureIndex || 0);
+          setCompletedFeatures(gameState.completedFeatures || []);
+          setGameStarted(true);
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsText(file);
+    });
+  };
+
+  const exportResults = () => {
+    const results = {
+      gameMode,
+      completedFeatures: completedFeatures.map(f => ({
+        name: f.name,
+        description: f.description,
+        estimatedDifficulty: f.estimatedDifficulty,
+      })),
+      timestamp: new Date().toISOString(),
+    };
+    
+    const dataStr = JSON.stringify(results, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `planning-poker-results-${Date.now()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const resetGame = () => {
+    setPlayers([]);
+    setGameMode('strict');
+    setBacklog([]);
+    setCurrentFeatureIndex(0);
+    setCurrentRound(1);
+    setVotes({});
+    setCompletedFeatures([]);
+    setGameStarted(false);
+  };
+
+  const submitVote = (playerId, value) => {
+    setVotes(prev => ({
+      ...prev,
+      [playerId]: value,
+    }));
+  };
+
+  const checkIfAllVoted = () => {
+    return players.every(player => votes[player.id] !== undefined);
+  };
+
+  const checkCoffeeBreak = () => {
+    return players.every(player => votes[player.id] === 'coffee');
+  };
+
+  const calculateResult = () => {
+    const numericVotes = Object.values(votes)
+      .filter(v => v !== 'coffee' && v !== '?')
+      .map(v => parseFloat(v));
+
+    if (numericVotes.length === 0) return null;
+
+    const allSame = numericVotes.every(v => v === numericVotes[0]);
+    if (allSame || (gameMode === 'strict')) {
+      if (allSame) {
+        return { consensus: true, value: numericVotes[0] };
+      }
+      return { consensus: false, value: null };
+    }
+
+    if (currentRound > 1) {
+      switch (gameMode) {
+        case 'average': {
+          const avg = numericVotes.reduce((a, b) => a + b, 0) / numericVotes.length;
+          return { consensus: true, value: Math.round(avg * 10) / 10 };
+        }
+        case 'median': {
+          const sorted = [...numericVotes].sort((a, b) => a - b);
+          const mid = Math.floor(sorted.length / 2);
+          const median = sorted.length % 2 === 0
+            ? (sorted[mid - 1] + sorted[mid]) / 2
+            : sorted[mid];
+          return { consensus: true, value: median };
+        }
+        case 'absolute_majority': {
+          const voteCounts = {};
+          numericVotes.forEach(v => {
+            voteCounts[v] = (voteCounts[v] || 0) + 1;
+          });
+          const maxCount = Math.max(...Object.values(voteCounts));
+          if (maxCount > numericVotes.length / 2) {
+            const majorityValue = Object.keys(voteCounts).find(k => voteCounts[k] === maxCount);
+            return { consensus: true, value: parseFloat(majorityValue) };
+          }
+          return { consensus: false, value: null };
+        }
+        case 'relative_majority': {
+          const voteCounts = {};
+          numericVotes.forEach(v => {
+            voteCounts[v] = (voteCounts[v] || 0) + 1;
+          });
+          const maxCount = Math.max(...Object.values(voteCounts));
+          const majorityValue = Object.keys(voteCounts).find(k => voteCounts[k] === maxCount);
+          return { consensus: true, value: parseFloat(majorityValue) };
+        }
+        default:
+          return { consensus: false, value: null };
+      }
+    }
+
+    return { consensus: false, value: null };
+  };
+
+  const nextRound = () => {
+    setVotes({});
+    setCurrentRound(prev => prev + 1);
+  };
+
+  const completeFeature = (estimatedDifficulty) => {
+    const feature = backlog[currentFeatureIndex];
+    setCompletedFeatures(prev => [
+      ...prev,
+      { ...feature, estimatedDifficulty },
+    ]);
+    setCurrentFeatureIndex(prev => prev + 1);
+    setCurrentRound(1);
+    setVotes({});
+  };
+
+  const value = {
+    players,
+    setPlayers,
+    gameMode,
+    setGameMode,
+    backlog,
+    setBacklog,
+    currentFeatureIndex,
+    currentRound,
+    votes,
+    completedFeatures,
+    gameStarted,
+    setGameStarted,
+    submitVote,
+    checkIfAllVoted,
+    checkCoffeeBreak,
+    calculateResult,
+    nextRound,
+    completeFeature,
+    saveGameToFile,
+    loadGameFromFile,
+    exportResults,
+    resetGame,
+  };
+
+  return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
+};
+
