@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
+import Card from '../components/Card';
+import PlayerVoteStatus from '../components/PlayerVoteStatus';
 
 function Game() {
   const navigate = useNavigate();
@@ -12,6 +14,10 @@ function Game() {
     currentRound,
     votes,
     completedFeatures,
+    submitVote,
+    checkIfAllVoted,
+    checkCoffeeBreak,
+    calculateResult,
     nextRound,
     completeFeature,
     saveGameToFile,
@@ -35,6 +41,36 @@ function Game() {
     }
   }, [currentFeatureIndex, backlog, navigate]);
 
+  const handleVote = (value) => {
+    const currentPlayer = players[currentPlayerIndex];
+    submitVote(currentPlayer.id, value);
+
+    // Move to next player
+    if (currentPlayerIndex < players.length - 1) {
+      setCurrentPlayerIndex(currentPlayerIndex + 1);
+    } else {
+      // All players have voted
+      setTimeout(() => {
+        processVotes();
+      }, 500);
+    }
+  };
+
+  const processVotes = () => {
+    if (!checkIfAllVoted()) return;
+
+    // Check for coffee break
+    if (checkCoffeeBreak()) {
+      if (confirm('Tous les joueurs ont choisi la carte café ! ☕\nVoulez-vous sauvegarder la partie ?')) {
+        saveGameToFile();
+      }
+      return;
+    }
+
+    const calculatedResult = calculateResult();
+    setResult(calculatedResult);
+    setShowResults(true);
+  };
 
   const handleNextRound = () => {
     nextRound();
@@ -56,7 +92,7 @@ function Game() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-xl text-gray-600 dark:text-gray-400">Chargement...</p>
+          <p className="text-xl text-gray-600">Chargement...</p>
         </div>
       </div>
     );
@@ -73,7 +109,7 @@ function Game() {
                 navigate('/');
               }
             }}
-            className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
+            className="text-indigo-600 hover:text-indigo-700 font-medium"
           >
             ← Quitter
           </button>
@@ -86,16 +122,16 @@ function Game() {
         </div>
 
         {/* Progress */}
-        <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+        <div className="mb-6 bg-white rounded-xl shadow-lg p-6">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+            <h3 className="text-lg font-semibold text-gray-800">
               Fonctionnalité {currentFeatureIndex + 1} / {backlog.length}
             </h3>
-            <span className="text-sm text-gray-600 dark:text-gray-400">
+            <span className="text-sm text-gray-600">
               Round {currentRound} • Mode: {gameMode}
             </span>
           </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+          <div className="w-full bg-gray-200 rounded-full h-2">
             <div
               className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${(completedFeatures.length / backlog.length) * 100}%` }}
@@ -104,19 +140,19 @@ function Game() {
         </div>
 
         {/* Current Feature */}
-        <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-          <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
+        <div className="mb-8 bg-white rounded-xl shadow-lg p-8">
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">
             {currentFeature.name}
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300">
+          <p className="text-lg text-gray-600">
             {currentFeature.description}
           </p>
         </div>
 
         {/* Vote Results */}
         {showResults ? (
-          <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-            <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 text-center">
+          <div className="mb-8 bg-white rounded-xl shadow-lg p-8">
+            <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
               Résultats du Vote
             </h3>
             
@@ -124,12 +160,12 @@ function Game() {
               {players.map((player) => (
                 <div
                   key={player.id}
-                  className="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4 text-center"
+                  className="bg-indigo-50 rounded-lg p-4 text-center"
                 >
-                  <div className="font-semibold text-gray-800 dark:text-white mb-2">
+                  <div className="font-semibold text-gray-800 mb-2">
                     {player.name}
                   </div>
-                  <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                  <div className="text-3xl font-bold text-indigo-600">
                     {votes[player.id]}
                   </div>
                 </div>
@@ -139,20 +175,20 @@ function Game() {
             {result && (
               <div className="text-center mb-6">
                 {result.consensus ? (
-                  <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-6">
-                    <div className="text-green-800 dark:text-green-300 font-semibold text-xl mb-2">
+                  <div className="bg-green-50 rounded-lg p-6">
+                    <div className="text-green-800 font-semibold text-xl mb-2">
                       ✅ Consensus atteint !
                     </div>
-                    <div className="text-4xl font-bold text-green-600 dark:text-green-400">
+                    <div className="text-4xl font-bold text-green-600">
                       {result.value}
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-6">
-                    <div className="text-yellow-800 dark:text-yellow-300 font-semibold text-xl">
+                  <div className="bg-yellow-50 rounded-lg p-6">
+                    <div className="text-yellow-800 font-semibold text-xl">
                       ⚠️ Pas de consensus
                     </div>
-                    <div className="text-gray-600 dark:text-gray-400 mt-2">
+                    <div className="text-gray-600 mt-2">
                       Un nouveau tour de vote est nécessaire
                     </div>
                   </div>
@@ -180,6 +216,36 @@ function Game() {
           </div>
         ) : (
           <>
+            {/* Player Vote Status */}
+            <div className="mb-8">
+              <PlayerVoteStatus
+                players={players}
+                votes={votes}
+                currentPlayerIndex={currentPlayerIndex}
+              />
+            </div>
+
+            {/* Current Player */}
+            <div className="mb-6 text-center">
+              <h3 className="text-2xl font-semibold text-gray-800">
+                Au tour de: <span className="text-indigo-600">
+                  {players[currentPlayerIndex]?.name}
+                </span>
+              </h3>
+            </div>
+
+            {/* Cards */}
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <div className="grid grid-cols-5 gap-4">
+                {cardValues.map((value) => (
+                  <Card
+                    key={value}
+                    value={value}
+                    onClick={() => handleVote(value)}
+                  />
+                ))}
+              </div>
+            </div>
           </>
         )}
       </div>

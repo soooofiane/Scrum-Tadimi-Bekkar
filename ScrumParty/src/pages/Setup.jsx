@@ -115,24 +115,24 @@ function Setup() {
       <div className="max-w-4xl mx-auto">
         <button
           onClick={() => navigate('/')}
-          className="mb-6 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
+          className="mb-6 text-indigo-600 hover:text-indigo-700 font-medium"
         >
           ← Retour
         </button>
 
-        <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-8">
+        <h1 className="text-4xl font-bold text-gray-800 mb-8">
           Configuration de la Partie
         </h1>
 
         <div className="space-y-6">
           {/* Players Section */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
               👥 Joueurs
             </h2>
             
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Nombre de joueurs
               </label>
               <input
@@ -141,14 +141,14 @@ function Setup() {
                 max="10"
                 value={numPlayers}
                 onChange={(e) => handleNumPlayersChange(parseInt(e.target.value) || 2)}
-                className="w-32 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-32 px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {playerNames.map((name, index) => (
                 <div key={index}>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Joueur {index + 1}
                   </label>
                   <input
@@ -156,7 +156,7 @@ function Setup() {
                     value={name}
                     onChange={(e) => handlePlayerNameChange(index, e.target.value)}
                     placeholder={`Nom du joueur ${index + 1}`}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
               ))}
@@ -164,8 +164,8 @@ function Setup() {
           </div>
 
           {/* Game Mode Section */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
               🎯 Mode de Jeu
             </h2>
             
@@ -175,8 +175,8 @@ function Setup() {
                   key={mode.value}
                   className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition ${
                     selectedMode === mode.value
-                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-700'
+                      ? 'border-indigo-500 bg-indigo-50'
+                      : 'border-gray-200 hover:border-indigo-300'
                   }`}
                 >
                   <input
@@ -188,10 +188,10 @@ function Setup() {
                     className="mt-1 mr-3"
                   />
                   <div>
-                    <div className="font-semibold text-gray-800 dark:text-white">
+                    <div className="font-semibold text-gray-800">
                       {mode.label}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="text-sm text-gray-600">
                       {mode.description}
                     </div>
                   </div>
@@ -201,8 +201,8 @@ function Setup() {
           </div>
 
           {/* Backlog Section */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
               📋 Backlog
             </h2>
             
@@ -222,7 +222,7 @@ function Setup() {
               />
               <button
                 onClick={handleUseExample}
-                className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-medium py-2 px-4 rounded-lg transition"
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition"
               >
                 📝 Utiliser l'exemple
               </button>
@@ -232,9 +232,9 @@ function Setup() {
               value={backlogInput}
               onChange={(e) => setBacklogInput(e.target.value)}
               placeholder='[\n  {\n    "name": "Fonctionnalité 1",\n    "description": "Description..."\n  }\n]'
-              className="w-full h-64 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full h-64 px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            <p className="mt-2 text-sm text-gray-600">
               Format: Array JSON avec des objets contenant 'name' et 'description'
             </p>
           </div>

@@ -22,14 +22,14 @@ function Home() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="max-w-2xl w-full">
         <div className="text-center mb-12">
-          <h1 className="text-6xl font-bold text-indigo-600 dark:text-indigo-400 mb-4">
+          <h1 className="text-6xl font-bold text-indigo-600 mb-4">
             Planning Poker
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300">
+          <p className="text-xl text-gray-600">
             Estimez vos fonctionnalités avec votre équipe
           </p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 space-y-6">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 space-y-6">
           <button
             onClick={handleStartNew}
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-4 px-6 rounded-xl transition duration-200 shadow-lg flex items-center justify-center gap-3 cursor-pointer"
@@ -44,10 +44,10 @@ function Home() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+              <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+              <span className="px-4 bg-white text-gray-500">
                 ou
               </span>
             </div>
@@ -74,8 +74,8 @@ function Home() {
             Reprendre une Partie
           </button>
 
-          <div className="mt-8 p-6 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl">
-            <h3 className="font-semibold text-indigo-900 dark:text-indigo-300 mb-2 flex items-center gap-2">
+          <div className="mt-8 p-6 bg-indigo-50 rounded-xl">
+            <h3 className="font-semibold text-indigo-900 mb-2 flex items-center gap-2">
               <img
                 src={infoIcon}
                 alt="Icône d'information"
@@ -83,14 +83,14 @@ function Home() {
               />
               À propos
             </h3>
-            <p className="text-sm text-indigo-800 dark:text-indigo-200">
+            <p className="text-sm text-indigo-800">
               Le Planning Poker est une technique d'estimation agile qui permet aux équipes
               d'estimer la complexité des fonctionnalités de manière collaborative.
             </p>
           </div>
         </div>
 
-        <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+        <div className="mt-8 text-center text-sm text-gray-500">
           <p>Projet Planning Poker • 2025</p>
         </div>
       </div>
