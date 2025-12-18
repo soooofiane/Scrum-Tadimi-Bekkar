@@ -36,6 +36,15 @@ function Game() {
   }, [players, navigate]);
 
   useEffect(() => {
+    if (players.length === 0 || showResults) return;
+
+    if (checkIfAllVoted()) {
+      processVotes();
+    }
+  
+  }, [players, checkIfAllVoted, showResults]);
+
+  useEffect(() => {
     if (currentFeatureIndex >= backlog.length && backlog.length > 0) {
       navigate('/results');
     }
@@ -45,18 +54,13 @@ function Game() {
     const currentPlayer = players[currentPlayerIndex];
     submitVote(currentPlayer.id, value);
 
-    // Move to next player
+  
     if (currentPlayerIndex < players.length - 1) {
       setCurrentPlayerIndex(currentPlayerIndex + 1);
-    } else {
-      // All players have voted
-      setTimeout(() => {
-        processVotes();
-      }, 500);
     }
   };
 
-  const processVotes = () => {
+  function processVotes() {
     if (!checkIfAllVoted()) return;
 
     // Check for coffee break
@@ -70,7 +74,7 @@ function Game() {
     const calculatedResult = calculateResult();
     setResult(calculatedResult);
     setShowResults(true);
-  };
+  }
 
   const handleNextRound = () => {
     nextRound();
