@@ -17,8 +17,13 @@ jobs:
 
     - name: Set up node
       uses: actions/setup-node@v4
+      with:
+        node-version: '22'
 
-    - name: Install dependencies
+    - name: Install dependencies (ScrumParty)
+      working-directory: ./ScrumParty
       run: npm install
-    - name: Run tests
+
+    - name: Run ScrumParty tests (Vitest)
+      working-directory: ./ScrumParty
       run: npm run test
