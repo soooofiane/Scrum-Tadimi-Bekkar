@@ -1,0 +1,17 @@
+{
+  "source": {
+    "include": ["src"],
+    "includePattern": ".+\\.(js|jsx)$",
+    "excludePattern": "(^|\\/|\\\\)test(s)?\\/|\\.test\\.(js|jsx)$"
+  },
+  "opts": {
+    "destination": "../out",
+    "recurse": true,
+    "encoding": "utf8"
+  },
+  "plugins": [],
+  "templates": {
+    "cleverLinks": true,
+    "monospaceLinks": false
+  }
+}

@@ -15,15 +15,18 @@ jobs:
 
     - name: Setup Node
       uses: actions/setup-node@v4
+      with:
+        node-version: '22'
 
-    - name : Install JsDoc
-      run : npm install -g jsdoc
+    - name: Install dependencies (ScrumParty)
+      working-directory: ./ScrumParty
+      run: npm install
 
-    - name: Generate Documentation
-      run: jsdoc *.js
+    - name: Generate JSDoc from ScrumParty
+      working-directory: ./ScrumParty
+      run: npm run docs
 
     - name: Deploy Documentation
-    
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
