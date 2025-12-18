@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: pages/Game.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: pages/Game.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useGame } from '../context/GameContext';
+import Card from '../components/Card';
+import PlayerVoteStatus from '../components/PlayerVoteStatus';
+
+/**
+ * Main game screen where players vote on backlog features using planning poker cards.
+ *
+ * Handles vote submission, consensus calculation and round progression.
+ *
+ * @returns {JSX.Element} Game page.
+ */
+function Game() {
+  const navigate = useNavigate();
+  const {
+    players,
+    gameMode,
+    backlog,
+    currentFeatureIndex,
+    currentRound,
+    votes,
+    completedFeatures,
+    submitVote,
+    checkIfAllVoted,
+    checkCoffeeBreak,
+    calculateResult,
+    nextRound,
+    completeFeature,
+    saveGameToFile,
+  } = useGame();
+
+  const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
+  const [showResults, setShowResults] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const cardValues = ['0', '1', '2', '3', '5', '8', '13', '21', '?', 'coffee'];
+
+  useEffect(() => {
+    if (players.length === 0) {
+      navigate('/setup');
+    }
+  }, [players, navigate]);
+
+  useEffect(() => {
+    if (players.length === 0 || showResults) return;
+
+    if (checkIfAllVoted()) {
+      processVotes();
+    }
+  
+  }, [players, checkIfAllVoted, showResults]);
+
+  useEffect(() => {
+    if (currentFeatureIndex >= backlog.length &amp;&amp; backlog.length > 0) {
+      navigate('/results');
+    }
+  }, [currentFeatureIndex, backlog, navigate]);
+
+  /**
+   * Handle the click on a card by the current player.
+   *
+   * @param {string|number} value - Selected card value.
+   */
+  const handleVote = (value) => {
+    const currentPlayer = players[currentPlayerIndex];
+    submitVote(currentPlayer.id, value);
+
+  
+    if (currentPlayerIndex &lt; players.length - 1) {
+      setCurrentPlayerIndex(currentPlayerIndex + 1);
+    }
+  };
+
+  /**
+   * Process the current round votes, handling coffee breaks
+   * and delegating result calculation to the context.
+   */
+  function processVotes() {
+    if (!checkIfAllVoted()) return;
+
+    // Check for coffee break
+    if (checkCoffeeBreak()) {
+      if (confirm('Tous les joueurs ont choisi la carte café ! ☕\nVoulez-vous sauvegarder la partie ?')) {
+        saveGameToFile();
+      }
+      return;
+    }
+
+    const calculatedResult = calculateResult();
+    setResult(calculatedResult);
+    setShowResults(true);
+  }
+
+  /**
+   * Start a new round for the same feature after a non‑final result.
+   */
+  const handleNextRound = () => {
+    nextRound();
+    setCurrentPlayerIndex(0);
+    setShowResults(false);
+    setResult(null);
+  };
+
+  /**
+   * Confirm the final estimate and move to the next feature.
+   */
+  const handleCompleteFeature = () => {
+    completeFeature(result.value);
+    setCurrentPlayerIndex(0);
+    setShowResults(false);
+    setResult(null);
+  };
+
+  const currentFeature = backlog[currentFeatureIndex];
+
+  if (!currentFeature) {
+    return (
+      &lt;div className="min-h-screen flex items-center justify-center">
+        &lt;div className="text-center">
+          &lt;p className="text-xl text-gray-600">Chargement...&lt;/p>
+        &lt;/div>
+      &lt;/div>
+    );
+  }
+
+  return (
+    &lt;div className="min-h-screen p-4 py-8">
+      &lt;div className="max-w-6xl mx-auto">
+        {/* Header */}
+        &lt;div className="mb-6 flex justify-between items-center">
+          &lt;button
+            onClick={() => {
+              if (confirm('Êtes-vous sûr de vouloir quitter la partie ?')) {
+                navigate('/');
+              }
+            }}
+            className="text-indigo-600 hover:text-indigo-700 font-medium"
+          >
+            ← Quitter
+          &lt;/button>
+          &lt;button
+            onClick={saveGameToFile}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition"
+          >
+            💾 Sauvegarder
+          &lt;/button>
+        &lt;/div>
+
+        {/* Progress */}
+        &lt;div className="mb-6 bg-white rounded-xl shadow-lg p-6">
+          &lt;div className="flex justify-between items-center mb-2">
+            &lt;h3 className="text-lg font-semibold text-gray-800">
+              Fonctionnalité {currentFeatureIndex + 1} / {backlog.length}
+            &lt;/h3>
+            &lt;span className="text-sm text-gray-600">
+              Round {currentRound} • Mode: {gameMode}
+            &lt;/span>
+          &lt;/div>
+          &lt;div className="w-full bg-gray-200 rounded-full h-2">
+            &lt;div
+              className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${(completedFeatures.length / backlog.length) * 100}%` }}
+            />
+          &lt;/div>
+        &lt;/div>
+
+        {/* Current Feature */}
+        &lt;div className="mb-8 bg-white rounded-xl shadow-lg p-8">
+          &lt;h2 className="text-3xl font-bold text-gray-800 mb-4">
+            {currentFeature.name}
+          &lt;/h2>
+          &lt;p className="text-lg text-gray-600">
+            {currentFeature.description}
+          &lt;/p>
+        &lt;/div>
+
+        {/* Vote Results */}
+        {showResults ? (
+          &lt;div className="mb-8 bg-white rounded-xl shadow-lg p-8">
+            &lt;h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+              Résultats du Vote
+            &lt;/h3>
+            
+            &lt;div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+              {players.map((player) => (
+                &lt;div
+                  key={player.id}
+                  className="bg-indigo-50 rounded-lg p-4 text-center"
+                >
+                  &lt;div className="font-semibold text-gray-800 mb-2">
+                    {player.name}
+                  &lt;/div>
+                  &lt;div className="text-3xl font-bold text-indigo-600">
+                    {votes[player.id]}
+                  &lt;/div>
+                &lt;/div>
+              ))}
+            &lt;/div>
+
+            {result &amp;&amp; (
+              &lt;div className="text-center mb-6">
+                {result.consensus ? (
+                  &lt;div className="bg-green-50 rounded-lg p-6">
+                    &lt;div className="text-green-800 font-semibold text-xl mb-2">
+                      ✅ Consensus atteint !
+                    &lt;/div>
+                    &lt;div className="text-4xl font-bold text-green-600">
+                      {result.value}
+                    &lt;/div>
+                  &lt;/div>
+                ) : (
+                  &lt;div className="bg-yellow-50 rounded-lg p-6">
+                    &lt;div className="text-yellow-800 font-semibold text-xl">
+                      ⚠️ Pas de consensus
+                    &lt;/div>
+                    &lt;div className="text-gray-600 mt-2">
+                      Un nouveau tour de vote est nécessaire
+                    &lt;/div>
+                  &lt;/div>
+                )}
+              &lt;/div>
+            )}
+
+            &lt;div className="flex gap-4 justify-center">
+              {result?.consensus ? (
+                &lt;button
+                  onClick={handleCompleteFeature}
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition"
+                >
+                  Valider et Continuer
+                &lt;/button>
+              ) : (
+                &lt;button
+                  onClick={handleNextRound}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg transition"
+                >
+                  Nouveau Tour
+                &lt;/button>
+              )}
+            &lt;/div>
+          &lt;/div>
+        ) : (
+          &lt;>
+            {/* Player Vote Status */}
+            &lt;div className="mb-8">
+              &lt;PlayerVoteStatus
+                players={players}
+                votes={votes}
+                currentPlayerIndex={currentPlayerIndex}
+              />
+            &lt;/div>
+
+            {/* Current Player */}
+            &lt;div className="mb-6 text-center">
+              &lt;h3 className="text-2xl font-semibold text-gray-800">
+                Au tour de: &lt;span className="text-indigo-600">
+                  {players[currentPlayerIndex]?.name}
+                &lt;/span>
+              &lt;/h3>
+            &lt;/div>
+
+            {/* Cards */}
+            &lt;div className="bg-white rounded-xl shadow-lg p-8">
+              &lt;div className="grid grid-cols-5 gap-4">
+                {cardValues.map((value) => (
+                  &lt;Card
+                    key={value}
+                    value={value}
+                    onClick={() => handleVote(value)}
+                  />
+                ))}
+              &lt;/div>
+            &lt;/div>
+          &lt;/>
+        )}
+      &lt;/div>
+    &lt;/div>
+  );
+}
+
+export default Game;
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#Card">Card</a></li><li><a href="global.html#Game">Game</a></li><li><a href="global.html#GameContext">GameContext</a></li><li><a href="global.html#GameProvider">GameProvider</a></li><li><a href="global.html#Home">Home</a></li><li><a href="global.html#PlayerVoteStatus">PlayerVoteStatus</a></li><li><a href="global.html#Results">Results</a></li><li><a href="global.html#Setup">Setup</a></li><li><a href="global.html#useGame">useGame</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Dec 18 2025 11:19:00 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

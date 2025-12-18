@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: pages/Setup.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: pages/Setup.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useGame } from '../context/GameContext';
+
+/**
+ * Configuration screen used before starting a Planning Poker session.
+ *
+ * Players, game mode and backlog are defined here.
+ *
+ * @returns {JSX.Element} Setup page.
+ */
+function Setup() {
+  const navigate = useNavigate();
+  const { setPlayers, setGameMode, setBacklog, setGameStarted } = useGame();
+  
+  const [numPlayers, setNumPlayers] = useState(2);
+  const [playerNames, setPlayerNames] = useState(['', '']);
+  const [selectedMode, setSelectedMode] = useState('strict');
+  const [backlogInput, setBacklogInput] = useState('');
+
+  const gameModes = [
+    { value: 'strict', label: 'Strict (Unanimité)', description: 'Tous les joueurs doivent être d\'accord' },
+    { value: 'average', label: 'Moyenne', description: 'Calcul de la moyenne des votes' },
+    { value: 'median', label: 'Médiane', description: 'Valeur médiane des votes' },
+    { value: 'absolute_majority', label: 'Majorité Absolue', description: 'Plus de 50% des votes' },
+    { value: 'relative_majority', label: 'Majorité Relative', description: 'Le vote le plus fréquent' },
+  ];
+
+  /**
+   * Update the number of players and resize the internal names array.
+   *
+   * @param {number} num - New number of players.
+   */
+  const handleNumPlayersChange = (num) => {
+    setNumPlayers(num);
+    setPlayerNames(prev => {
+      const newNames = [...prev];
+      while (newNames.length &lt; num) {
+        newNames.push('');
+      }
+      return newNames.slice(0, num);
+    });
+  };
+
+  /**
+   * Update the name of a player in the local state.
+   *
+   * @param {number} index - Index of the player in the list.
+   * @param {string} name - New player name.
+   */
+  const handlePlayerNameChange = (index, name) => {
+    const newNames = [...playerNames];
+    newNames[index] = name;
+    setPlayerNames(newNames);
+  };
+
+  /**
+   * Load a JSON backlog file from disk into the text area.
+   *
+   * @param {React.ChangeEvent&lt;HTMLInputElement>} event - File input change event.
+   */
+  const handleLoadBacklog = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          setBacklogInput(JSON.stringify(data, null, 2));
+        } catch (error) {
+          alert('Erreur lors du chargement du fichier JSON: ' + error.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  /**
+   * Validate input values and start the game by populating global context.
+   */
+  const handleStartGame = () => {
+    // Validate inputs
+    if (playerNames.some(name => !name.trim())) {
+      alert('Veuillez entrer un nom pour tous les joueurs');
+      return;
+    }
+
+    if (!backlogInput.trim()) {
+      alert('Veuillez charger un backlog');
+      return;
+    }
+
+    try {
+      const backlogData = JSON.parse(backlogInput);
+      
+      // Ensure backlog is an array
+      const backlogArray = Array.isArray(backlogData) ? backlogData : [backlogData];
+      
+      if (backlogArray.length === 0) {
+        alert('Le backlog ne peut pas être vide');
+        return;
+      }
+
+      // Create players with IDs
+      const playersData = playerNames.map((name, index) => ({
+        id: `player-${index}`,
+        name: name.trim(),
+      }));
+
+      setPlayers(playersData);
+      setGameMode(selectedMode);
+      setBacklog(backlogArray);
+      setGameStarted(true);
+      navigate('/game');
+    } catch (error) {
+      alert('Erreur dans le format du backlog JSON: ' + error.message);
+    }
+  };
+
+  const exampleBacklog = [
+    {
+      name: "Authentification utilisateur",
+      description: "Implémenter un système de connexion/inscription"
+    },
+    {
+      name: "Dashboard",
+      description: "Créer un tableau de bord avec les statistiques"
+    },
+    {
+      name: "API REST",
+      description: "Développer les endpoints de l'API"
+    }
+  ];
+
+  /**
+   * Fill the backlog field with a built‑in example.
+   */
+  const handleUseExample = () => {
+    setBacklogInput(JSON.stringify(exampleBacklog, null, 2));
+  };
+
+  return (
+    &lt;div className="min-h-screen p-4 py-8">
+      &lt;div className="max-w-4xl mx-auto">
+        &lt;button
+          onClick={() => navigate('/')}
+          className="mb-6 text-indigo-600 hover:text-indigo-700 font-medium"
+        >
+          ← Retour
+        &lt;/button>
+
+        &lt;h1 className="text-4xl font-bold text-gray-800 mb-8">
+          Configuration de la Partie
+        &lt;/h1>
+
+        &lt;div className="space-y-6">
+          {/* Players Section */}
+          &lt;div className="bg-white rounded-xl shadow-lg p-6">
+            &lt;h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              👥 Joueurs
+            &lt;/h2>
+            
+            &lt;div className="mb-4">
+              &lt;label className="block text-sm font-medium text-gray-700 mb-2">
+                Nombre de joueurs
+              &lt;/label>
+              &lt;input
+                type="number"
+                min="2"
+                max="10"
+                value={numPlayers}
+                onChange={(e) => handleNumPlayersChange(parseInt(e.target.value) || 2)}
+                className="w-32 px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            &lt;/div>
+
+            &lt;div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {playerNames.map((name, index) => (
+                &lt;div key={index}>
+                  &lt;label className="block text-sm font-medium text-gray-700 mb-1">
+                    Joueur {index + 1}
+                  &lt;/label>
+                  &lt;input
+                    type="text"
+                    value={name}
+                    onChange={(e) => handlePlayerNameChange(index, e.target.value)}
+                    placeholder={`Nom du joueur ${index + 1}`}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                &lt;/div>
+              ))}
+            &lt;/div>
+          &lt;/div>
+
+          {/* Game Mode Section */}
+          &lt;div className="bg-white rounded-xl shadow-lg p-6">
+            &lt;h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              🎯 Mode de Jeu
+            &lt;/h2>
+            
+            &lt;div className="space-y-3">
+              {gameModes.map((mode) => (
+                &lt;label
+                  key={mode.value}
+                  className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition ${
+                    selectedMode === mode.value
+                      ? 'border-indigo-500 bg-indigo-50'
+                      : 'border-gray-200 hover:border-indigo-300'
+                  }`}
+                >
+                  &lt;input
+                    type="radio"
+                    name="gameMode"
+                    value={mode.value}
+                    checked={selectedMode === mode.value}
+                    onChange={(e) => setSelectedMode(e.target.value)}
+                    className="mt-1 mr-3"
+                  />
+                  &lt;div>
+                    &lt;div className="font-semibold text-gray-800">
+                      {mode.label}
+                    &lt;/div>
+                    &lt;div className="text-sm text-gray-600">
+                      {mode.description}
+                    &lt;/div>
+                  &lt;/div>
+                &lt;/label>
+              ))}
+            &lt;/div>
+          &lt;/div>
+
+          {/* Backlog Section */}
+          &lt;div className="bg-white rounded-xl shadow-lg p-6">
+            &lt;h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              📋 Backlog
+            &lt;/h2>
+            
+            &lt;div className="mb-4 space-x-2">
+              &lt;label
+                htmlFor="backlog-file-input"
+                className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg cursor-pointer transition"
+              >
+                📁 Charger depuis un fichier
+              &lt;/label>
+              &lt;input
+                type="file"
+                accept=".json"
+                onChange={handleLoadBacklog}
+                className="hidden"
+                id="backlog-file-input"
+              />
+              &lt;button
+                onClick={handleUseExample}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition"
+              >
+                📝 Utiliser l'exemple
+              &lt;/button>
+            &lt;/div>
+
+            &lt;textarea
+              value={backlogInput}
+              onChange={(e) => setBacklogInput(e.target.value)}
+              placeholder='[\n  {\n    "name": "Fonctionnalité 1",\n    "description": "Description..."\n  }\n]'
+              className="w-full h-64 px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+            &lt;p className="mt-2 text-sm text-gray-600">
+              Format: Array JSON avec des objets contenant 'name' et 'description'
+            &lt;/p>
+          &lt;/div>
+
+          {/* Start Button */}
+          &lt;button
+            onClick={handleStartGame}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl transition duration-200 transform hover:scale-105 shadow-lg"
+          >
+            🚀 Commencer la Partie
+          &lt;/button>
+        &lt;/div>
+      &lt;/div>
+    &lt;/div>
+  );
+}
+
+export default Setup;
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#Card">Card</a></li><li><a href="global.html#Game">Game</a></li><li><a href="global.html#GameContext">GameContext</a></li><li><a href="global.html#GameProvider">GameProvider</a></li><li><a href="global.html#Home">Home</a></li><li><a href="global.html#PlayerVoteStatus">PlayerVoteStatus</a></li><li><a href="global.html#Results">Results</a></li><li><a href="global.html#Setup">Setup</a></li><li><a href="global.html#useGame">useGame</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Dec 18 2025 11:19:00 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

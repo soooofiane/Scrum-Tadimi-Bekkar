@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Home</title>
+    <title>JSDoc: Source: App.jsx</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,32 +17,48 @@
 
 <div id="main">
 
-    <h1 class="page-title">Home</h1>
+    <h1 class="page-title">Source: App.jsx</h1>
 
     
 
 
 
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { GameProvider } from './context/GameContext';
+import Home from './pages/Home';
+import Setup from './pages/Setup';
+import Game from './pages/Game';
+import Results from './pages/Results';
 
+/**
+ * Root application component that wires routing and the game context provider.
+ *
+ * @returns {JSX.Element} The Planning Poker single page application.
+ */
+function App() {
+  return (
+    &lt;GameProvider>
+      &lt;Router>
+        &lt;div className="min-h-screen">
+          &lt;Routes>
+            &lt;Route path="/" element={&lt;Home />} />
+            &lt;Route path="/setup" element={&lt;Setup />} />
+            &lt;Route path="/game" element={&lt;Game />} />
+            &lt;Route path="/results" element={&lt;Results />} />
+          &lt;/Routes>
+        &lt;/div>
+      &lt;/Router>
+    &lt;/GameProvider>
+  );
+}
 
-    <h3> </h3>
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
+export default App;
+</code></pre>
+        </article>
+    </section>
 
 
 
