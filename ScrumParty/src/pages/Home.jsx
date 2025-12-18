@@ -4,6 +4,13 @@ import controllerIcon from '../assets/controller.svg';
 import folderIcon from '../assets/folder.svg';
 import infoIcon from '../assets/info.svg';
 
+/**
+ * Landing page of the application.
+ *
+ * Lets the user start a new Planning Poker game or resume one from a file.
+ *
+ * @returns {JSX.Element} Home screen.
+ */
 function Home() {
   const navigate = useNavigate();
   const [loadGameFromFile, setLoadGameFromFile] = useState(null);

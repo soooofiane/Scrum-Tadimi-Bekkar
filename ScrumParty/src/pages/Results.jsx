@@ -1,6 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 
+/**
+ * Final summary screen shown after all backlog items have been estimated.
+ *
+ * Displays points, list of completed features and allows exporting results.
+ *
+ * @returns {JSX.Element} Results page.
+ */
 function Results() {
   const navigate = useNavigate();
   const { completedFeatures, gameMode, exportResults, resetGame } = useGame();

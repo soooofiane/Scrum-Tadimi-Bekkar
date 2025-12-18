@@ -5,6 +5,11 @@ import Setup from './pages/Setup';
 import Game from './pages/Game';
 import Results from './pages/Results';
 
+/**
+ * Root application component that wires routing and the game context provider.
+ *
+ * @returns {JSX.Element} The Planning Poker single page application.
+ */
 function App() {
   return (
     <GameProvider>

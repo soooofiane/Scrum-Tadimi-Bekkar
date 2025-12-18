@@ -1,7 +1,17 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
+/**
+ * React context that stores the full Planning Poker game state.
+ * @type {React.Context<import('react').ContextType<React.Context<any>>}
+ */
 const GameContext = createContext();
 
+/**
+ * Hook to access the Planning Poker game context.
+ *
+ * @returns {Object} Game state and actions used across the application.
+ * @throws {Error} If used outside of a {@link GameProvider}.
+ */
 export const useGame = () => {
   const context = useContext(GameContext);
   if (!context) {
@@ -10,6 +20,12 @@ export const useGame = () => {
   return context;
 };
 
+/**
+ * Provider component that wraps the app and exposes game state and actions.
+ *
+ * @param {{ children: React.ReactNode }} props - React children that should have access to the game context.
+ * @returns {JSX.Element} Provider wrapping the application.
+ */
 export const GameProvider = ({ children }) => {
   const [players, setPlayers] = useState([]);
   const [gameMode, setGameMode] = useState('strict'); // strict, average, median, absolute_majority, relative_majority
@@ -29,6 +45,11 @@ export const GameProvider = ({ children }) => {
     }
   }, []);
 
+  /**
+   * Download the current game state to a JSON file.
+   *
+   * The file can be reused later to restore the session.
+   */
   const saveGameToFile = () => {
     const gameState = {
       players,
@@ -49,6 +70,12 @@ export const GameProvider = ({ children }) => {
     URL.revokeObjectURL(url);
   };
 
+  /**
+   * Load a previously saved game state from a JSON file.
+   *
+   * @param {File} file - JSON file containing a previously exported game.
+   * @returns {Promise<void>} Resolves when the game state has been restored.
+   */
   const loadGameFromFile = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -71,6 +98,10 @@ export const GameProvider = ({ children }) => {
     });
   };
 
+  /**
+   * Export only the results of the game (completed features + mode) as JSON.
+   * The downloaded file is intended to be shared or archived.
+   */
   const exportResults = () => {
     const results = {
       gameMode,
@@ -92,6 +123,9 @@ export const GameProvider = ({ children }) => {
     URL.revokeObjectURL(url);
   };
 
+  /**
+   * Reset the whole game state to its initial values.
+   */
   const resetGame = () => {
     setPlayers([]);
     setGameMode('strict');
@@ -103,6 +137,12 @@ export const GameProvider = ({ children }) => {
     setGameStarted(false);
   };
 
+  /**
+   * Register a vote for a given player.
+   *
+   * @param {string} playerId - Identifier of the player.
+   * @param {string|number} value - Chosen card value.
+   */
   const submitVote = (playerId, value) => {
     setVotes(prev => ({
       ...prev,
@@ -110,14 +150,29 @@ export const GameProvider = ({ children }) => {
     }));
   };
 
+  /**
+   * Check if every player has already voted for the current round.
+   *
+   * @returns {boolean} True if all players have voted.
+   */
   const checkIfAllVoted = () => {
     return players.every(player => votes[player.id] !== undefined);
   };
 
+  /**
+   * Check if all players picked the "coffee" card, meaning a break is needed.
+   *
+   * @returns {boolean} True if all votes are set to "coffee".
+   */
   const checkCoffeeBreak = () => {
     return players.every(player => votes[player.id] === 'coffee');
   };
 
+  /**
+   * Compute the result of the current voting round based on the selected mode.
+   *
+   * @returns {{consensus: boolean, value: number|null}|null} Object describing consensus and chosen value.
+   */
   const calculateResult = () => {
     const numericVotes = Object.values(votes)
       .filter(v => v !== 'coffee' && v !== '?')
@@ -176,11 +231,19 @@ export const GameProvider = ({ children }) => {
     return { consensus: false, value: null };
   };
 
+  /**
+   * Move to the next voting round, clearing previous votes.
+   */
   const nextRound = () => {
     setVotes({});
     setCurrentRound(prev => prev + 1);
   };
 
+  /**
+   * Mark the current backlog feature as completed with a final estimate.
+   *
+   * @param {number} estimatedDifficulty - Final agreed difficulty for the feature.
+   */
   const completeFeature = (estimatedDifficulty) => {
     const feature = backlog[currentFeatureIndex];
     setCompletedFeatures(prev => [

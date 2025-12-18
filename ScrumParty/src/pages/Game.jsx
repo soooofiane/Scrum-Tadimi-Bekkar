@@ -4,6 +4,13 @@ import { useGame } from '../context/GameContext';
 import Card from '../components/Card';
 import PlayerVoteStatus from '../components/PlayerVoteStatus';
 
+/**
+ * Main game screen where players vote on backlog features using planning poker cards.
+ *
+ * Handles vote submission, consensus calculation and round progression.
+ *
+ * @returns {JSX.Element} Game page.
+ */
 function Game() {
   const navigate = useNavigate();
   const {
@@ -50,6 +57,11 @@ function Game() {
     }
   }, [currentFeatureIndex, backlog, navigate]);
 
+  /**
+   * Handle the click on a card by the current player.
+   *
+   * @param {string|number} value - Selected card value.
+   */
   const handleVote = (value) => {
     const currentPlayer = players[currentPlayerIndex];
     submitVote(currentPlayer.id, value);
@@ -60,6 +72,10 @@ function Game() {
     }
   };
 
+  /**
+   * Process the current round votes, handling coffee breaks
+   * and delegating result calculation to the context.
+   */
   function processVotes() {
     if (!checkIfAllVoted()) return;
 
@@ -76,6 +92,9 @@ function Game() {
     setShowResults(true);
   }
 
+  /**
+   * Start a new round for the same feature after a non‑final result.
+   */
   const handleNextRound = () => {
     nextRound();
     setCurrentPlayerIndex(0);
@@ -83,6 +102,9 @@ function Game() {
     setResult(null);
   };
 
+  /**
+   * Confirm the final estimate and move to the next feature.
+   */
   const handleCompleteFeature = () => {
     completeFeature(result.value);
     setCurrentPlayerIndex(0);

@@ -2,6 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 
+/**
+ * Configuration screen used before starting a Planning Poker session.
+ *
+ * Players, game mode and backlog are defined here.
+ *
+ * @returns {JSX.Element} Setup page.
+ */
 function Setup() {
   const navigate = useNavigate();
   const { setPlayers, setGameMode, setBacklog, setGameStarted } = useGame();
@@ -19,6 +26,11 @@ function Setup() {
     { value: 'relative_majority', label: 'Majorité Relative', description: 'Le vote le plus fréquent' },
   ];
 
+  /**
+   * Update the number of players and resize the internal names array.
+   *
+   * @param {number} num - New number of players.
+   */
   const handleNumPlayersChange = (num) => {
     setNumPlayers(num);
     setPlayerNames(prev => {
@@ -30,12 +42,23 @@ function Setup() {
     });
   };
 
+  /**
+   * Update the name of a player in the local state.
+   *
+   * @param {number} index - Index of the player in the list.
+   * @param {string} name - New player name.
+   */
   const handlePlayerNameChange = (index, name) => {
     const newNames = [...playerNames];
     newNames[index] = name;
     setPlayerNames(newNames);
   };
 
+  /**
+   * Load a JSON backlog file from disk into the text area.
+   *
+   * @param {React.ChangeEvent<HTMLInputElement>} event - File input change event.
+   */
   const handleLoadBacklog = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -52,6 +75,9 @@ function Setup() {
     }
   };
 
+  /**
+   * Validate input values and start the game by populating global context.
+   */
   const handleStartGame = () => {
     // Validate inputs
     if (playerNames.some(name => !name.trim())) {
@@ -106,6 +132,9 @@ function Setup() {
     }
   ];
 
+  /**
+   * Fill the backlog field with a built‑in example.
+   */
   const handleUseExample = () => {
     setBacklogInput(JSON.stringify(exampleBacklog, null, 2));
   };

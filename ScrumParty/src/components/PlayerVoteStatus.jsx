@@ -1,3 +1,9 @@
+/**
+ * Visual indicator showing which players have already voted in the current round.
+ *
+ * @param {{ players: Array<{id: string, name: string}>, votes: Record<string, string|number>, currentPlayerIndex: number }} props
+ * @returns {JSX.Element} Panel listing players and their vote status.
+ */
 function PlayerVoteStatus({ players, votes, currentPlayerIndex }) {
     return (
       <div className="bg-white rounded-xl shadow-lg p-6">
