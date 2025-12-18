@@ -1,7 +1,9 @@
 /**
  * Single planning poker card used to collect a vote from the current player.
  *
- * @param {{ value: string, onClick: () => void }} props - Card value and click handler.
+ * @param {Object} props - Card props.
+ * @param {string} props.value - Card value.
+ * @param {Function} props.onClick - Click handler function.
  * @returns {JSX.Element} Stylised button representing a planning poker card.
  */
 function Card({ value, onClick }) {

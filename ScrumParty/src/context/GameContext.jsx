@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 /**
  * React context that stores the full Planning Poker game state.
- * @type {React.Context<import('react').ContextType<React.Context<any>>}
+ * @type {React.Context}
  */
 const GameContext = createContext();
 
