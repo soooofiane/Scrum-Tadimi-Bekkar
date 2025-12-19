@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
+import { useGame } from '../context/GameContext';
 import controllerIcon from '../assets/controller.svg';
 import folderIcon from '../assets/folder.svg';
 import infoIcon from '../assets/info.svg';
@@ -13,16 +14,28 @@ import infoIcon from '../assets/info.svg';
  */
 function Home() {
   const navigate = useNavigate();
-  const [loadGameFromFile, setLoadGameFromFile] = useState(null);
-  const [resetGame, setResetGame] = useState(null);
+  const { loadGameFromFile, resetGame } = useGame();
   const fileInputRef = useRef(null);
 
   const handleStartNew = () => {
+    resetGame();
     navigate('/setup');
   };
 
-  const handleLoadGame = () => {
-    navigate('/game');
+  const handleLoadGame = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      await loadGameFromFile(file);
+      navigate('/game');
+    } catch (error) {
+      alert('Erreur lors du chargement de la partie: ' + error.message);
+    }
+    // Reset the input so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (

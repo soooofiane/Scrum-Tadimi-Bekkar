@@ -87,6 +87,9 @@ export const GameProvider = ({ children }) => {
           setBacklog(gameState.backlog || []);
           setCurrentFeatureIndex(gameState.currentFeatureIndex || 0);
           setCompletedFeatures(gameState.completedFeatures || []);
+          // Reset round and votes when loading a saved game
+          setCurrentRound(1);
+          setVotes({});
           setGameStarted(true);
           resolve();
         } catch (error) {

@@ -28,6 +28,7 @@ function Game() {
     nextRound,
     completeFeature,
     saveGameToFile,
+    resetGame,
   } = useGame();
 
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
@@ -133,6 +134,8 @@ function Game() {
             onClick={() => {
               if (confirm('Êtes-vous sûr de vouloir quitter la partie ?')) {
                 navigate('/');
+                resetGame();
+                localStorage.removeItem('planningPokerSave');
               }
             }}
             className="text-indigo-600 hover:text-indigo-700 font-medium"
